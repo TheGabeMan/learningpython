@@ -1,11 +1,9 @@
 from bs4 import BeautifulSoup
-with open('home.html', 'r') as html_file:
-    content = html_file.read()
-    soup = BeautifulSoup(content, 'lxml')
-    course_cards = soup.find_all('div', class_ = 'card')
-    for course in course_cards:
-        course_name = course.h5.text
-        course_price = course.a.text.split()[-1 ]
+import requests
 
-        print( course_name)
-        print( course_price)
+html_text = requests.get('https://www.funda.nl/koop/brunssum/appartement/sorteer-datum-af/').text
+
+soup = BeautifulSoup('html_text','lxml')
+objecten_per_dag = soup.find_all('div', class_ = 'search-content-output')
+# print( objecten_per_dag)
+print( objecten_per_dag)
