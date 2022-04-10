@@ -1,8 +1,10 @@
+from os import read
 from typing import List
 from datetime import datetime, timedelta
 import stravatoken
 import requests
 import time
+import json
 
 
 ## URL to retrieve the first "page" of activities
@@ -14,7 +16,7 @@ import time
 daysHistory = 50
 epochHistory = round(time.time() - (daysHistory * 86400))
 
-## Since we need to know of each day if it was a rest day, and therefore no strava activity, we'll cycle through all days between today and epochHistory (start date)
+## Since we need to know of each day if it was a rest day, and therefore no strava activity, we'll cycle through all days between epochHistory (start date) and today
 ## Startdate is formatted from epoch to datetime.date
 startDate = datetime.date( datetime.fromtimestamp( epochHistory ))
 print( "Start date = ", startDate)
@@ -22,64 +24,58 @@ print( "Start date = ", startDate)
 ## Url to get 60 activities per page and from 1644105600 = 6 feb 2022 12:00am GMT 
 url = "https://www.strava.com/api/v3/athlete/activities?after=" + str( epochHistory ) + "&per_page=60" + "&access_token=" + stravatoken.strava_tokens['access_token']
 
-# Get last activiteis from Strava
+# Get last activities from Strava
 readStrava = requests.get(url)
 ListOfActivities = readStrava.json()
 print('Number of activities read: ', len(ListOfActivities))
 
 
+## Read the stored activities
+try:
+    readfile = open("activities.json", "r")
+    storedDates = json.load(readfile)
+except IOError:
+    ## If the file doesn't exist, create json object in 'data'
+    ## Since Fitness is calculated from the last 42 day average, only need to go back 42 days
+    CheckDate = round(time.time() - (42 * 86400))
+    print( "Checkdate :" , datetime.date( datetime.fromtimestamp( CheckDate )))
+    print( "Isoformat: ", datetime.date( datetime.fromtimestamp( CheckDate )).isoformat() )
 
-## https://www.pressthered.com/adding_dates_and_times_in_python/
-## convtime + timedelta(days=1)
+    storedFitness = {
+         "dailyfitness" :
+        [
+            {
+                "fitnessdate" : datetime.date( datetime.fromtimestamp( CheckDate )).isoformat(),
+                "activityid" : 0,
+                "name" : "dummy",
+                "HRSS" : 0,
+                "PSS" : 0,
+                "Final Stress" : 0,
+                "fitness" : 0,
+                "fatigue" : 0,
+                "form" : 0 
+            }
+       ]
+    }
 
-EvalDate = startDate
-Today = datetime.date( datetime.fromtimestamp( time.time() ))
-while EvalDate <= Today:
-    # print( "Eval day is: ", EvalDate, " ---  Today: ", Today)
-    activityFound = False
-
-    ## Now check to see if there is an activity on EvalDay
-    ## Very dirty loop through all activities instead of searching through the activities
-    for activity in ListOfActivities:
-        StravaDate = datetime.date( datetime.strptime(activity["start_date_local"], "%Y-%m-%dT%H:%M:%SZ") )
-        if EvalDate == StravaDate:
-            print( "Strava date: ", StravaDate)
-            activityFound = True
-
-    if activityFound:
-        print("For Evalday ", EvalDate, " one or more activities were found")
-
-    EvalDate += timedelta(days=1)   ## Add one day to EvalDate
-
-
-
+print( type(ListOfActivities))
+def search_activity_on_date( name ):
+    for keyval in ListOfActivities:
+        if name.lower() == keyval['name'].lower():
+            return keyval['start_date_local'], keyval['id']
 
 
+## For every record in dailyfitness check if this date has any recordings in the strava file.
+## In strava there can be mulitple recordings for one day
+for fitnessday in storedFitness["dailyfitness"]:
+    print( fitnessday["fitnessdate"])
 
+    ## Check if Strava has an activity for that day, unfortunately by looping through
+    searchfor = "Morning Ride"
+    if (search_activity_on_date(searchfor) != None):
+        print( "Found: ", search_activity_on_date(searchfor))
 
+    else:
+        print( searchfor, " is not found.") 
 
-
-
-# for activity in ListOfActivities:
-#    if activity["device_watts"]:
-#        print( activity["id"], 
-#            activity["name"],
-#            activity["start_date_local"],
-#            activity["trainer"],
-#            activity["kilojoules"],
-#            activity["workout_type"],
-#            activity["device_watts"],
-#            activity["weighted_average_watts"], 
-#            activity["suffer_score"]
-#            )
-        
- #   else:
- #       print( activity["id"], 
- #           activity["name"],
- #           activity["start_date_local"],
- #           activity["trainer"],
- #           activity["kilojoules"],
- #           activity["workout_type"],
- #           activity["device_watts"]
- #           )
 

@@ -1,0 +1,81 @@
+
+
+## Determine dates to work with
+CheckDate = startDate
+Today = datetime.date( datetime.fromtimestamp( time.time() ))
+
+
+
+
+
+
+
+
+while EvalDate <= Today:
+    # print( "Eval day is: ", EvalDate, " ---  Today: ", Today)
+    activityFound = False
+
+    ## Now check to see if there is an activity on EvalDay
+    ## Very dirty loop through all activities instead of searching through the activities
+    for activity in ListOfActivities:
+        StravaDate = datetime.date( datetime.strptime(activity["start_date_local"], "%Y-%m-%dT%H:%M:%SZ") )
+        if EvalDate == StravaDate:
+            print( "Strava date: ", StravaDate)
+            activityFound = True
+
+    if activityFound:
+        print("For Evalday ", EvalDate, " one or more activities were found")
+
+    EvalDate += timedelta(days=1)   ## Add one day to EvalDate
+
+
+
+
+
+        # print(storedDate["dailyfitness"]["fitnessdate"])
+        for activity in ListOfActivities:
+        StravaDate = datetime.date( datetime.strptime(activity["start_date_local"], "%Y-%m-%dT%H:%M:%SZ") )
+        print("Type activity: ", type(activity))
+        #if EvalDate == StravaDate:
+        #    print( "Strava date: ", StravaDate)
+        #    activityFound = True
+
+    if activityFound:
+        print("For Evalday one or more activities were found")
+
+
+
+
+
+
+
+
+
+# for activity in ListOfActivities:
+#    if activity["device_watts"]:
+#        print( activity["id"], 
+#            activity["name"],
+#            activity["start_date_local"],
+#            activity["trainer"],
+#            activity["kilojoules"],
+#            activity["workout_type"],
+#            activity["device_watts"],
+#            activity["weighted_average_watts"], 
+#            activity["suffer_score"]
+#            )
+        
+ #   else:
+ #       print( activity["id"], 
+ #           activity["name"],
+ #           activity["start_date_local"],
+ #           activity["trainer"],
+ #           activity["kilojoules"],
+ #           activity["workout_type"],
+ #           activity["device_watts"]
+ #           )
+
+
+
+
+
+
