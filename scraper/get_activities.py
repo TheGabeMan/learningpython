@@ -1,6 +1,6 @@
 from os import read
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import stravatoken
 import requests
 import time
@@ -12,8 +12,8 @@ import json
 ## URL to retrieve one specific strava activity, in this example 6865796332 is the activity ID:
 ## url = "https://www.strava.com/api/v3/activities/6865796332" + "?access_token=" + stravatoken.strava_tokens['access_token']
 
-## To get past 50 days of activities calculate 'after' date in epochtime. 1 day = 86400 sec => 50 days = 4320000
-daysHistory = 50
+## To get past 56 (8 weeks) days of activities calculate 'after' date in epochtime. 1 day = 86400 sec => 50 days = 4320000
+daysHistory = 56
 epochHistory = round(time.time() - (daysHistory * 86400))
 
 ## Since we need to know of each day if it was a rest day, and therefore no strava activity, we'll cycle through all days between epochHistory (start date) and today
@@ -21,61 +21,36 @@ epochHistory = round(time.time() - (daysHistory * 86400))
 startDate = datetime.date( datetime.fromtimestamp( epochHistory ))
 print( "Start date = ", startDate)
 
-## Url to get 60 activities per page and from 1644105600 = 6 feb 2022 12:00am GMT 
-url = "https://www.strava.com/api/v3/athlete/activities?after=" + str( epochHistory ) + "&per_page=60" + "&access_token=" + stravatoken.strava_tokens['access_token']
+## Url to get 112 activities per page and from 1644105600 = 6 feb 2022 12:00am GMT 
+## 112 because potentially we could have 56 days of 2 activities per day, makes 112 activities. 
+## Bigger numbers could also be true, but we'll see about that later.
+url = "https://www.strava.com/api/v3/athlete/activities?after=" + str( epochHistory ) + "&per_page=112" + "&access_token=" + stravatoken.strava_tokens['access_token']
 
 # Get last activities from Strava
 readStrava = requests.get(url)
 ListOfActivities = readStrava.json()
 print('Number of activities read: ', len(ListOfActivities))
 
+## Checking for every date between startDate and today
 
-## Read the stored activities
-try:
-    readfile = open("activities.json", "r")
-    storedDates = json.load(readfile)
-except IOError:
-    ## If the file doesn't exist, create json object in 'data'
-    ## Since Fitness is calculated from the last 42 day average, only need to go back 42 days
-    CheckDate = round(time.time() - (42 * 86400))
-    print( "Checkdate :" , datetime.date( datetime.fromtimestamp( CheckDate )))
-    print( "Isoformat: ", datetime.date( datetime.fromtimestamp( CheckDate )).isoformat() )
-
-    storedFitness = {
-         "dailyfitness" :
-        [
-            {
-                "fitnessdate" : datetime.date( datetime.fromtimestamp( CheckDate )).isoformat(),
-                "activityid" : 0,
-                "name" : "dummy",
-                "HRSS" : 0,
-                "PSS" : 0,
-                "Final Stress" : 0,
-                "fitness" : 0,
-                "fatigue" : 0,
-                "form" : 0 
-            }
-       ]
-    }
-
-print( type(ListOfActivities))
-def search_activity_on_date( name ):
-    for keyval in ListOfActivities:
-        if name.lower() == keyval['name'].lower():
-            return keyval['start_date_local'], keyval['id']
-
-
-## For every record in dailyfitness check if this date has any recordings in the strava file.
-## In strava there can be mulitple recordings for one day
-for fitnessday in storedFitness["dailyfitness"]:
-    print( fitnessday["fitnessdate"])
-
-    ## Check if Strava has an activity for that day, unfortunately by looping through
-    searchfor = "Morning Ride"
-    if (search_activity_on_date(searchfor) != None):
-        print( "Found: ", search_activity_on_date(searchfor))
+fitnessdate = startDate
+while fitnessdate <= date.today():
+    ## Check if fitnessday is found in ListOfActivities
+    print( "Fitness date: ", fitnessdate)
+    #StravaDate = datetime.date( datetime.strptime(activity["start_date_local"], "%Y-%m-%dT%H:%M:%SZ") )
+    foundActivities = [x for x in ListOfActivities if datetime.date( datetime.strptime(x["start_date_local"], "%Y-%m-%dT%H:%M:%SZ") ) == fitnessdate ]
+    # print( "FoundAct: ", type(foundActivities), len(foundActivities))
+    if len(foundActivities) == 0:
+        print( "        No activity today")
 
     else:
-        print( searchfor, " is not found.") 
+        for foundActivity in foundActivities:
+            print( "        ", 
+                foundActivity["id"], 
+                foundActivity["name"],
+                foundActivity["start_date_local"]
+                )
 
 
+    # End Loop of fitnessdate
+    fitnessdate = fitnessdate + timedelta(days=1)

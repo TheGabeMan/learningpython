@@ -5,6 +5,7 @@ CheckDate = startDate
 Today = datetime.date( datetime.fromtimestamp( time.time() ))
 
 
+### Spelen met datum tijd:
 
 
 
@@ -78,4 +79,73 @@ while EvalDate <= Today:
 
 
 
+###########
+#########
 
+print(ListOfActivities)
+
+## Read the stored activities
+try:
+    readfile = open("activities.json", "r")
+    storedDates = json.load(readfile)
+except IOError:
+    ## If the file doesn't exist, create json object in 'data'
+    ## Since Fitness is calculated from the last 42 day average, only need to go back 42 days
+    CheckDate = round(time.time() - (42 * 86400))
+    print( "Checkdate :" , datetime.date( datetime.fromtimestamp( CheckDate )))
+    print( "Isoformat: ", datetime.date( datetime.fromtimestamp( CheckDate )).isoformat() )
+
+    storedFitness = {
+         "dailyfitness" :
+        [
+            {
+                "fitnessdate" : datetime.date( datetime.fromtimestamp( CheckDate )).isoformat(),
+                "activityid" : 0,
+                "name" : "dummy",
+                "HRSS" : 0,
+                "PSS" : 0,
+                "Final Stress" : 0,
+                "fitness" : 0,
+                "fatigue" : 0,
+                "form" : 0 
+            }
+       ]
+    }
+
+print( type(ListOfActivities))
+def search_activity_on_date( name ):
+    for keyval in ListOfActivities:
+        if name.lower() == keyval['name'].lower():
+            return keyval['start_date_local'], keyval['id']
+
+
+## For every record in dailyfitness check if this date has any recordings in the strava file.
+## In strava there can be mulitple recordings for one day
+for fitnessday in storedFitness["dailyfitness"]:
+    print( fitnessday["fitnessdate"])
+
+    ## Check if Strava has an activity for that day, unfortunately by looping through
+    searchfor = "Morning Ride"
+    if (search_activity_on_date(searchfor) != None):
+        print( "Found: ", search_activity_on_date(searchfor))
+
+    else:
+        print( searchfor, " is not found.") 
+
+
+
+
+
+
+def search_activity_on_date( name ):
+for keyval in ListOfActivities:
+    if name.lower() == keyval['name'].lower():
+        return keyval['start_date_local'], keyval['id']
+
+## Check if Strava has an activity for that day, unfortunately by looping through
+searchfor = "Rustig ritje met Soof"
+if (search_activity_on_date(searchfor) != None):
+print( "Found: ", search_activity_on_date(searchfor))
+
+else:
+print( searchfor, " is not found.") 
