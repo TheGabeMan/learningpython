@@ -42,15 +42,52 @@ while fitnessdate <= date.today():
     # print( "FoundAct: ", type(foundActivities), len(foundActivities))
     if len(foundActivities) == 0:
         print( "        No activity today")
+        ## Add empty day, calculate Fitness with 0 value
 
     else:
         for foundActivity in foundActivities:
+            ## Add the scores of all activities today to sum into one score
+
+            ## 'has_heartrate': True
+            ## 'average_heartrate': 134.4
+
             print( "        ", 
                 foundActivity["id"], 
                 foundActivity["name"],
                 foundActivity["start_date_local"]
                 )
+            ## Add to day calculation with the summary
 
 
     # End Loop of fitnessdate
     fitnessdate = fitnessdate + timedelta(days=1)
+
+print( ListOfActivities[8] )
+
+
+
+for activity in ListOfActivities:
+    if "weighted_average_watts" in activity:
+        print( 
+            activity["id"],"##",
+            activity["moving_time"],"##",
+            activity["elapsed_time"],"##",
+            activity["distance"],"##",
+            activity["total_elevation_gain"],"##",
+            activity["start_date_local"],"##",
+            activity["weighted_average_watts"],"##",
+            activity["suffer_score"],"##",
+            activity["name"]
+        )
+    else:
+        print( 
+            activity["id"],"##",
+            activity["moving_time"],"##",
+            activity["elapsed_time"],"##",
+            activity["distance"],"##",
+            activity["total_elevation_gain"],"##",
+            activity["start_date_local"],"##",
+            0,"##",
+            activity["suffer_score"],"##",
+            activity["name"]," no watts "
+        )
